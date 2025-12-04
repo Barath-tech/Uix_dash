@@ -1,0 +1,151 @@
+================================================================================
+MULTI-AGENT AI MONITORING DASHBOARD - COMPLETE SETUP GUIDE
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. Prerequisites
+2. Project Setup
+3. Running the Dashboard
+4. API Configuration
+5. Backend Integration Guide
+6. WebSocket Setup
+7. API Endpoints Reference
+8. Data Structures
+9. Troubleshooting
+
+================================================================================
+1. PREREQUISITES
+================================================================================
+
+Before starting, ensure you have the following installed:
+
+- Node.js (v18.0.0 or higher)
+- npm (v9.0.0 or higher) or yarn (v1.22.0 or higher)
+- Git
+
+Verify installations:
+  $ node --version
+  $ npm --version
+
+================================================================================
+2. PROJECT SETUP
+================================================================================
+
+OPTION A: Using shadcn CLI (Recommended)
+----------------------------------------
+1. Click the three dots in the top right of the v0 Block view
+2. Select "Download ZIP" or use the shadcn CLI command provided
+3. Follow the prompts to set up the project
+
+OPTION B: Manual Setup
+----------------------
+1. Download the project ZIP file from v0
+2. Extract to your desired location
+3. Open terminal and navigate to project folder:
+   $ cd multi-agent-dashboard
+
+4. Install dependencies:
+   $ npm install
+
+   Required packages (auto-installed):
+   - next
+   - react
+   - react-dom
+   - recharts
+   - lucide-react
+   - tailwindcss
+   - @radix-ui/react-* (various components)
+   - class-variance-authority
+   - clsx
+   - tailwind-merge
+
+================================================================================
+3. RUNNING THE DASHBOARD
+================================================================================
+
+Development Mode:
+-----------------
+$ npm run dev
+
+The dashboard will be available at: http://localhost:3000
+
+Production Build:
+-----------------
+$ npm run build
+$ npm start
+
+================================================================================
+4. API CONFIGURATION
+================================================================================
+
+All API configuration is centralized in: lib/api.ts
+
+Open this file and modify the API_CONFIG object:
+
+--------------------------------------------------------------------------------
+FILE: lib/api.ts
+--------------------------------------------------------------------------------
+
+export const API_CONFIG = {
+  // Change this to your Python backend URL
+  BASE_URL: 'http://localhost:8000/api',
+  
+  // Change this to your WebSocket server URL
+  WS_URL: 'ws://localhost:8000/ws',
+  
+  // API version prefix
+  VERSION: 'v1',
+  
+  // Request timeout in milliseconds
+  TIMEOUT: 30000,
+  
+  // Retry attempts for failed requests
+  RETRY_ATTEMPTS: 3,
+  
+  // Retry delay in milliseconds
+  RETRY_DELAY: 1000,
+}
+
+--------------------------------------------------------------------------------
+
+ENVIRONMENT VARIABLES (Optional):
+---------------------------------
+Create a .env.local file in the project root:
+
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api
+NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
+
+Then update lib/api.ts to use these:
+
+export const API_CONFIG = {
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api',
+  WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws',
+  // ... rest of config
+}
+
+================================================================================
+5. BACKEND INTEGRATION GUIDE
+================================================================================
+
+Your Python backend needs to implement the following REST API endpoints.
+All endpoints should return JSON responses.
+
+CORS Configuration:
+-------------------
+Ensure your Python backend allows CORS from the dashboard URL:
+
+Python (FastAPI example):
+```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Dashboard URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
