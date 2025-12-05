@@ -1,0 +1,2021 @@
+================================================================================
+MULTI-AGENT AI MONITORING DASHBOARD - MANUAL SETUP GUIDE
+================================================================================
+
+This guide shows you how to manually create the dashboard from scratch.
+Follow each step carefully to recreate the entire application.
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1. Prerequisites & Quick Start
+2. Folder Structure Overview
+3. Core Configuration Files
+4. Library Files (API & Mock Data)
+5. Layout & Theme Files
+6. Component Files (in order)
+7. Page Files
+8. Running & Testing
+9. Connecting to Your Backend
+
+================================================================================
+1. PREREQUISITES & QUICK START
+================================================================================
+
+Required:
+- Node.js 18+ installed
+- npm or pnpm package manager
+- Code editor (VS Code recommended)
+- Terminal/Command line access
+
+Quick Start (5 minutes):
+1. Create a new Next.js project with TypeScript
+2. Install Tailwind CSS
+3. Follow the folder structure below
+4. Copy each file in the order provided
+5. Run `npm run dev`
+6. Visit http://localhost:3000
+
+Fuller Setup (30 minutes):
+1. Follow all steps below in order
+2. Test each component as you create it
+3. Verify API endpoints in lib/api.ts
+4. Configure your backend connection
+
+================================================================================
+2. FOLDER STRUCTURE OVERVIEW
+================================================================================
+
+Create this exact folder structure:
+
+multiagent-dashboard/
+├── app/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   ├── globals.css
+│   ├── agents/
+│   │   ├── page.tsx
+│   │   ├── loading.tsx
+│   │   └── [id]/
+│   │       └── page.tsx
+│   ├── logs/
+│   │   └── page.tsx
+│   ├── metrics/
+│   │   └── page.tsx
+│   ├── settings/
+│   │   └── page.tsx
+│   └── traces/
+│       └── page.tsx
+├── components/
+│   ├── theme-provider.tsx
+│   ├── dashboard/
+│   │   ├── sidebar.tsx
+│   │   ├── header.tsx
+│   │   ├── stat-card.tsx
+│   │   └── status-badge.tsx
+│   ├── overview/
+│   │   ├── metrics-grid.tsx
+│   │   ├── activity-chart.tsx
+│   │   ├── agent-status-list.tsx
+│   │   └── recent-logs.tsx
+│   ├── logs/
+│   │   ├── log-table.tsx
+│   │   └── log-filters.tsx
+│   ├── agents/
+│   │   ├── agent-card.tsx
+│   │   └── agent-detail.tsx
+│   └── ui/
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── sidebar.tsx
+│       ├── badge.tsx
+│       ├── table.tsx
+│       ├── chart.tsx
+│       ├── select.tsx
+│       ├── input.tsx
+│       ├── label.tsx
+│       ├── dropdown-menu.tsx
+│       ├── scroll-area.tsx
+│       ├── tabs.tsx
+│       ├── dialog.tsx
+│       ├── skeleton.tsx
+│       ├── spinner.tsx
+│       ├── empty.tsx
+│       ├── fieldset.tsx
+│       ├── input-group.tsx
+│       ├── alert.tsx
+│       ├── tooltip.tsx
+│       ├── popover.tsx
+│       ├── separator.tsx
+│       ├── progress.tsx
+│       ├── use-toast.ts
+│       ├── toast.tsx
+│       └── toaster.tsx
+├── hooks/
+│   └── use-logs-stream.ts
+├── lib/
+│   ├── api.ts
+│   ├── mock-data.ts
+│   └── utils.ts
+├── public/
+│   └── placeholder.svg
+├── styles/
+│   └── globals.css
+├── next.config.mjs
+├── tsconfig.json
+├── package.json
+└── postcss.config.mjs
+
+================================================================================
+3. STEP 1: CREATE PACKAGE.JSON
+================================================================================
+
+Create file: package.json
+
+Copy this entire content:
+
+{
+  "name": "multiagent-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "next": "^16.0.0",
+    "tailwindcss": "^4.0.0",
+    "recharts": "^2.12.0",
+    "@radix-ui/react-primitive": "^1.1.0",
+    "@radix-ui/react-slot": "^2.1.0",
+    "@radix-ui/react-select": "^2.1.0",
+    "@radix-ui/react-dropdown-menu": "^2.1.1",
+    "@radix-ui/react-scroll-area": "^1.2.0",
+    "@radix-ui/react-tabs": "^1.1.0",
+    "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-checkbox": "^1.1.0",
+    "@radix-ui/react-popover": "^1.1.1",
+    "@radix-ui/react-tooltip": "^1.1.3",
+    "@radix-ui/react-hover-card": "^1.1.0",
+    "@radix-ui/react-navigation-menu": "^1.1.4",
+    "@radix-ui/react-context-menu": "^2.2.1",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
+    "sonner": "^1.4.41",
+    "zustand": "^4.5.0",
+    "swr": "^2.2.5",
+    "date-fns": "^3.0.0",
+    "lucide-react": "^0.344.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/react": "^19.0.5",
+    "@types/react-dom": "^19.0.5",
+    "typescript": "^5.3.3",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16"
+  }
+}
+
+Then run in terminal:
+npm install
+(This will take 2-3 minutes)
+
+================================================================================
+4. STEP 2: CREATE CONFIGURATION FILES
+================================================================================
+
+Create file: tsconfig.json
+
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+---
+
+Create file: next.config.mjs
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  cacheComponents: true,
+}
+
+export default nextConfig
+
+---
+
+Create file: postcss.config.mjs
+
+/** @type {import('postcss-load-config').Config} */
+const config = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+export default config
+
+================================================================================
+5. STEP 3: CREATE CORE LIBRARY FILES
+================================================================================
+
+MOST IMPORTANT FILE - This connects to your Python backend!
+
+Create file: lib/api.ts
+
+(Copy the FULL content from the file I showed earlier - it's 300+ lines)
+
+[Content shown earlier in the conversation]
+
+---
+
+Create file: lib/mock-data.ts
+
+(Copy the FULL content from the file shown earlier - it's 200+ lines)
+
+[Content shown earlier in the conversation]
+
+---
+
+Create file: lib/utils.ts
+
+export function cn(...classes: (string | undefined | null | false)[]) {
+  return classes.filter(Boolean).join(' ')
+}
+
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (!+bytes) return '0 Bytes'
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
+}
+
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(value)
+}
+
+export function formatLatency(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`
+  return `${(ms / 1000).toFixed(2)}s`
+}
+
+export function formatNumber(num: number): string {
+  return new Intl.NumberFormat('en-US').format(num)
+}
+
+export function formatPercentage(value: number): string {
+  return `${(value * 100).toFixed(1)}%`
+}
+
+================================================================================
+6. STEP 4: CREATE GLOBAL STYLES
+================================================================================
+
+Create file: app/globals.css
+
+(Copy the FULL content from globals.css shown earlier - 150+ lines)
+
+[Content shown earlier in the conversation]
+
+================================================================================
+7. STEP 5: CREATE THEME PROVIDER
+================================================================================
+
+Create file: components/theme-provider.tsx
+
+'use client'
+
+import { useEffect, useState } from 'react'
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    // Set dark theme by default
+    document.documentElement.classList.add('dark')
+  }, [])
+
+  if (!mounted) return <>{children}</>
+
+  return <>{children}</>
+}
+
+================================================================================
+8. STEP 6: CREATE LAYOUT FILE
+================================================================================
+
+Create file: app/layout.tsx
+
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import './globals.css'
+import { ThemeProvider } from '@/components/theme-provider'
+
+const geistSans = Geist({ subsets: ['latin'] })
+const geistMono = Geist_Mono({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'Multi-Agent Dashboard',
+  description: 'Monitor and manage your multi-agent AI system in real-time',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
+  },
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <meta name="color-scheme" content="dark" />
+      </head>
+      <body className={`${geistSans.className} antialiased`}>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
+    </html>
+  )
+}
+
+================================================================================
+9. STEP 7: CREATE UI COMPONENT LIBRARY SETUP
+================================================================================
+
+For the shadcn UI components, I recommend using the shadcn CLI:
+
+1. In terminal, run:
+   npx shadcn@latest init
+
+2. Answer the questions:
+   - Would you like to use TypeScript? → Yes
+   - Which style would you like to use? → Default
+   - Which color would you like as the base color? → Slate
+   - Where is your global CSS file? → app/globals.css
+
+3. Then add each component individually:
+   npx shadcn@latest add button
+   npx shadcn@latest add card
+   npx shadcn@latest add table
+   npx shadcn@latest add select
+   npx shadcn@latest add input
+   npx shadcn@latest add label
+   npx shadcn@latest add dropdown-menu
+   npx shadcn@latest add scroll-area
+   npx shadcn@latest add tabs
+   npx shadcn@latest add dialog
+   npx shadcn@latest add skeleton
+   npx shadcn@latest add alert
+   npx shadcn@latest add tooltip
+   npx shadcn@latest add popover
+   npx shadcn@latest add separator
+   npx shadcn@latest add badge
+
+ALTERNATIVELY (Manual Components):
+If you don't want to use the CLI, I can provide each component code
+manually. Just let me know and I'll give you the full component code
+for each one.
+
+================================================================================
+10. STEP 8: CREATE UTILITY HOOKS
+================================================================================
+
+Create file: hooks/use-logs-stream.ts
+
+import { useEffect, useCallback, useRef } from 'react'
+import { createLogsWebSocket, LogEntry } from '@/lib/api'
+
+export function useLogsStream(
+  onNewLog: (log: LogEntry) => void,
+  enabled: boolean = true
+) {
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const connect = useCallback(() => {
+    if (!enabled) return
+
+    try {
+      wsRef.current = createLogsWebSocket(
+        (log) => onNewLog(log),
+        () => {
+          console.error('[useLogsStream] WebSocket error')
+          // Attempt reconnect after 3 seconds
+          reconnectTimeoutRef.current = setTimeout(connect, 3000)
+        },
+        () => {
+          console.log('[useLogsStream] WebSocket closed')
+          // Attempt reconnect after 5 seconds
+          reconnectTimeoutRef.current = setTimeout(connect, 5000)
+        }
+      )
+    } catch (error) {
+      console.error('[useLogsStream] Failed to create WebSocket:', error)
+    }
+  }, [enabled, onNewLog])
+
+  useEffect(() => {
+    connect()
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close()
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current)
+      }
+    }
+  }, [connect])
+}
+
+================================================================================
+11. STEP 9: CREATE DASHBOARD COMPONENTS
+================================================================================
+
+The dashboard has many components. Below is the order to create them:
+
+COMPONENT 1: Status Badge
+Create file: components/dashboard/status-badge.tsx
+
+'use client'
+
+import { Badge } from '@/components/ui/badge'
+import { type Agent } from '@/lib/api'
+
+const STATUS_CONFIG = {
+  active: { variant: 'default', className: 'bg-green-900 text-green-100' },
+  idle: { variant: 'secondary' as const, className: 'bg-slate-700 text-slate-100' },
+  error: { variant: 'destructive' as const, className: 'bg-red-900 text-red-100' },
+  offline: { variant: 'secondary' as const, className: 'bg-slate-800 text-slate-300' },
+}
+
+interface StatusBadgeProps {
+  status: Agent['status']
+  showDot?: boolean
+}
+
+export function StatusBadge({ status, showDot = true }: StatusBadgeProps) {
+  const config = STATUS_CONFIG[status]
+
+  return (
+    <Badge variant={config.variant} className={config.className}>
+      {showDot && (
+        <span className="mr-1 inline-block h-2 w-2 rounded-full bg-current" />
+      )}
+      {status.charAt(0).toUpperCase() + status.slice(1)}
+    </Badge>
+  )
+}
+
+---
+
+COMPONENT 2: Stat Card
+Create file: components/dashboard/stat-card.tsx
+
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowUp, ArrowDown } from 'lucide-react'
+
+interface StatCardProps {
+  title: string
+  value: string | number
+  description?: string
+  trend?: number
+  icon?: React.ReactNode
+}
+
+export function StatCard({
+  title,
+  value,
+  description,
+  trend,
+  icon,
+}: StatCardProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          {title}
+        </CardTitle>
+        {icon && <div className="text-muted-foreground">{icon}</div>}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {description && (
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        )}
+        {trend !== undefined && (
+          <div className="flex items-center text-xs mt-2">
+            {trend > 0 ? (
+              <>
+                <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+                <span className="text-green-500">+{trend.toFixed(1)}%</span>
+              </>
+            ) : (
+              <>
+                <ArrowDown className="h-3 w-3 text-red-500 mr-1" />
+                <span className="text-red-500">{trend.toFixed(1)}%</span>
+              </>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+---
+
+COMPONENT 3: Header
+Create file: components/dashboard/header.tsx
+
+'use client'
+
+import { Button } from '@/components/ui/button'
+import { Bell, Settings } from 'lucide-react'
+import Link from 'next/link'
+
+export function Header() {
+  return (
+    <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur">
+      <div className="flex h-16 items-center justify-between px-6">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold">
+            MA
+          </div>
+          <h1 className="text-lg font-semibold">Multi-Agent Dashboard</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon">
+            <Bell className="h-5 w-5" />
+          </Button>
+          <Link href="/settings">
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+---
+
+COMPONENT 4: Sidebar
+Create file: components/dashboard/sidebar.tsx
+
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { LayoutDashboard, Network, FileText, TrendingUp, GitBranch, Settings } from 'lucide-react'
+
+const NAV_ITEMS = [
+  { href: '/', label: 'Overview', icon: LayoutDashboard },
+  { href: '/agents', label: 'Agents', icon: Network },
+  { href: '/logs', label: 'Logs', icon: FileText },
+  { href: '/metrics', label: 'Metrics', icon: TrendingUp },
+  { href: '/traces', label: 'Traces', icon: GitBranch },
+  { href: '/settings', label: 'Settings', icon: Settings },
+]
+
+export function Sidebar() {
+  const pathname = usePathname()
+
+  return (
+    <aside className="fixed left-0 top-16 h-[calc(100vh-64px)] w-56 border-r bg-card">
+      <nav className="flex flex-col gap-2 p-4">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+
+          return (
+            <Link key={item.href} href={item.href}>
+              <Button
+                variant={isActive ? 'default' : 'ghost'}
+                className="w-full justify-start"
+              >
+                <Icon className="mr-2 h-4 w-4" />
+                {item.label}
+              </Button>
+            </Link>
+          )
+        })}
+      </nav>
+    </aside>
+  )
+}
+
+================================================================================
+12. STEP 10: CREATE LOGS COMPONENTS
+================================================================================
+
+COMPONENT: Log Filters
+Create file: components/logs/log-filters.tsx
+
+'use client'
+
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Search, Filter } from 'lucide-react'
+
+interface LogFiltersProps {
+  onFilterChange?: (filters: {
+    search: string
+    level: string
+    status: string
+  }) => void
+}
+
+export function LogFilters({ onFilterChange }: LogFiltersProps) {
+  return (
+    <Card className="p-4 mb-6">
+      <div className="flex gap-4 flex-wrap">
+        <div className="flex-1 min-w-64">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search logs..."
+              className="pl-10"
+              onChange={(e) =>
+                onFilterChange?.({
+                  search: e.target.value,
+                  level: '',
+                  status: '',
+                })
+              }
+            />
+          </div>
+        </div>
+        <Select>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Log Level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Levels</SelectItem>
+            <SelectItem value="debug">Debug</SelectItem>
+            <SelectItem value="info">Info</SelectItem>
+            <SelectItem value="warning">Warning</SelectItem>
+            <SelectItem value="error">Error</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="success">Success</SelectItem>
+            <SelectItem value="error">Error</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline">
+          <Filter className="mr-2 h-4 w-4" />
+          More Filters
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
+---
+
+COMPONENT: Log Table
+Create file: components/logs/log-table.tsx
+
+'use client'
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { formatLatency, formatCurrency } from '@/lib/utils'
+import { LogEntry } from '@/lib/api'
+import { formatDistanceToNow, parseISO } from 'date-fns'
+import { ChevronDown } from 'lucide-react'
+import { useState } from 'react'
+
+interface LogTableProps {
+  logs: LogEntry[]
+  isLoading?: boolean
+}
+
+const LEVEL_COLORS = {
+  info: 'bg-blue-900/30 text-blue-100',
+  warning: 'bg-yellow-900/30 text-yellow-100',
+  error: 'bg-red-900/30 text-red-100',
+  debug: 'bg-slate-700/30 text-slate-200',
+}
+
+const STATUS_COLORS = {
+  success: 'bg-green-900/30 text-green-100',
+  error: 'bg-red-900/30 text-red-100',
+  pending: 'bg-yellow-900/30 text-yellow-100',
+}
+
+export function LogTable({ logs, isLoading }: LogTableProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  return (
+    <div className="rounded-lg border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10"></TableHead>
+            <TableHead>Time</TableHead>
+            <TableHead>Agent</TableHead>
+            <TableHead>Level</TableHead>
+            <TableHead>Message</TableHead>
+            <TableHead>Input</TableHead>
+            <TableHead>Output</TableHead>
+            <TableHead>Latency</TableHead>
+            <TableHead>Cost</TableHead>
+            <TableHead>Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {logs.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                {isLoading ? 'Loading logs...' : 'No logs found'}
+              </TableCell>
+            </TableRow>
+          ) : (
+            logs.map((log) => (
+              <TableRow
+                key={log.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() =>
+                  setExpandedId(expandedId === log.id ? null : log.id)
+                }
+              >
+                <TableCell>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      expandedId === log.id ? 'rotate-180' : ''
+                    }`}
+                  />
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  {formatDistanceToNow(parseISO(log.timestamp), {
+                    addSuffix: true,
+                  })}
+                </TableCell>
+                <TableCell className="text-sm font-medium">
+                  {log.agentName}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    className={LEVEL_COLORS[log.level]}
+                    variant="secondary"
+                  >
+                    {log.level}
+                  </Badge>
+                </TableCell>
+                <TableCell className="max-w-xs truncate text-sm">
+                  {log.message}
+                </TableCell>
+                <TableCell className="text-right text-xs font-mono">
+                  {log.inputTokens}
+                </TableCell>
+                <TableCell className="text-right text-xs font-mono">
+                  {log.outputTokens}
+                </TableCell>
+                <TableCell className="text-right text-xs">
+                  {formatLatency(log.latency)}
+                </TableCell>
+                <TableCell className="text-right text-xs font-mono">
+                  {formatCurrency(log.cost)}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    className={STATUS_COLORS[log.status]}
+                    variant="secondary"
+                  >
+                    {log.status}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+      {expandedId && (
+        <div className="border-t bg-muted/50 p-4">
+          <ExpandedLogDetail logId={expandedId} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ExpandedLogDetail({ logId }: { logId: string }) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h4 className="font-semibold text-sm mb-2">Input</h4>
+        <code className="block bg-card p-3 rounded text-xs text-muted-foreground overflow-auto max-h-40">
+          Sample input prompt for {logId}...
+        </code>
+      </div>
+      <div>
+        <h4 className="font-semibold text-sm mb-2">Output</h4>
+        <code className="block bg-card p-3 rounded text-xs text-muted-foreground overflow-auto max-h-40">
+          Sample output response...
+        </code>
+      </div>
+    </div>
+  )
+}
+
+================================================================================
+13. STEP 11: CREATE AGENT COMPONENTS
+================================================================================
+
+COMPONENT: Agent Card
+Create file: components/agents/agent-card.tsx
+
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { StatusBadge } from '@/components/dashboard/status-badge'
+import { Agent } from '@/lib/api'
+import { formatNumber, formatLatency, formatCurrency } from '@/lib/utils'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { ArrowRight } from 'lucide-react'
+
+interface AgentCardProps {
+  agent: Agent
+}
+
+export function AgentCard({ agent }: AgentCardProps) {
+  return (
+    <Card className="hover:border-primary transition-colors">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle>{agent.name}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">{agent.type}</p>
+          </div>
+          <StatusBadge status={agent.status} />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">{agent.description}</p>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-xs text-muted-foreground">Executions</p>
+            <p className="font-mono font-semibold">
+              {formatNumber(agent.totalExecutions)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Success Rate</p>
+            <p className="font-mono font-semibold">
+              {agent.successRate.toFixed(1)}%
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Avg Latency</p>
+            <p className="font-mono font-semibold">
+              {formatLatency(agent.avgLatency)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Total Cost</p>
+            <p className="font-mono font-semibold">
+              {formatCurrency(agent.totalCost)}
+            </p>
+          </div>
+        </div>
+        <Link href={`/agents/${agent.id}`}>
+          <Button className="w-full bg-transparent" variant="outline">
+            View Details
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  )
+}
+
+---
+
+COMPONENT: Agent Detail
+Create file: components/agents/agent-detail.tsx
+
+'use client'
+
+import { Agent, AgentMetrics } from '@/lib/api'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { StatCard } from '@/components/dashboard/stat-card'
+import { StatusBadge } from '@/components/dashboard/status-badge'
+import { formatNumber, formatLatency, formatCurrency } from '@/lib/utils'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+
+interface AgentDetailProps {
+  agent: Agent
+  metrics?: AgentMetrics
+}
+
+export function AgentDetail({ agent, metrics }: AgentDetailProps) {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-4">
+        <StatCard title="Total Executions" value={formatNumber(agent.totalExecutions)} />
+        <StatCard title="Success Rate" value={`${agent.successRate.toFixed(1)}%`} />
+        <StatCard title="Avg Latency" value={formatLatency(agent.avgLatency)} />
+        <StatCard title="Total Cost" value={formatCurrency(agent.totalCost)} />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Agent Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Status</p>
+              <div className="mt-1">
+                <StatusBadge status={agent.status} />
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Type</p>
+              <Badge variant="secondary">{agent.type}</Badge>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Model</p>
+              <p className="font-mono">{agent.model}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Capabilities</p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {agent.capabilities?.map((cap) => (
+                  <Badge key={cap} variant="outline">
+                    {cap}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {metrics && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Latency Over Time</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={metrics.latencyOverTime}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="timestamp" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="value" stroke="#06b6d4" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+================================================================================
+14. STEP 12: CREATE OVERVIEW COMPONENTS
+================================================================================
+
+COMPONENT: Metrics Grid
+Create file: components/overview/metrics-grid.tsx
+
+'use client'
+
+import { StatCard } from '@/components/dashboard/stat-card'
+import { MetricsOverview } from '@/lib/api'
+import { formatNumber, formatCurrency, formatLatency } from '@/lib/utils'
+import { Activity, Zap, TrendingUp, BarChart3 } from 'lucide-react'
+
+interface MetricsGridProps {
+  metrics: MetricsOverview
+}
+
+export function MetricsGrid({ metrics }: MetricsGridProps) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <StatCard
+        title="Active Agents"
+        value={metrics.activeAgents}
+        description={`of ${metrics.totalAgents} total`}
+        icon={<Activity className="h-4 w-4" />}
+      />
+      <StatCard
+        title="Total Executions"
+        value={formatNumber(metrics.totalExecutions)}
+        description="All time"
+        icon={<Zap className="h-4 w-4" />}
+      />
+      <StatCard
+        title="Success Rate"
+        value={`${metrics.successRate.toFixed(1)}%`}
+        description="Last 24h"
+        icon={<TrendingUp className="h-4 w-4" />}
+      />
+      <StatCard
+        title="Total Cost"
+        value={formatCurrency(metrics.totalCost)}
+        description={`Avg latency: ${formatLatency(metrics.avgLatency)}`}
+        icon={<BarChart3 className="h-4 w-4" />}
+      />
+    </div>
+  )
+}
+
+---
+
+COMPONENT: Activity Chart
+Create file: components/overview/activity-chart.tsx
+
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+interface ActivityChartProps {
+  data: Array<{
+    time: string
+    requests: number
+    tokens: number
+    cost: number
+  }>
+}
+
+export function ActivityChart({ data }: ActivityChartProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>System Activity (24h)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis yAxisId="left" />
+            <YAxis yAxisId="right" orientation="right" />
+            <Tooltip />
+            <Legend />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="requests"
+              stroke="#06b6d4"
+              strokeWidth={2}
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="tokens"
+              stroke="#fbbf24"
+              strokeWidth={2}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  )
+}
+
+---
+
+COMPONENT: Agent Status List
+Create file: components/overview/agent-status-list.tsx
+
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { StatusBadge } from '@/components/dashboard/status-badge'
+import { Agent } from '@/lib/api'
+import { formatLatency, formatCurrency } from '@/lib/utils'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+
+interface AgentStatusListProps {
+  agents: Agent[]
+}
+
+export function AgentStatusList({ agents }: AgentStatusListProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Agent Status</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Agent</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Latency</TableHead>
+              <TableHead>Cost</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {agents.map((agent) => (
+              <TableRow key={agent.id}>
+                <TableCell className="font-medium">{agent.name}</TableCell>
+                <TableCell>
+                  <StatusBadge status={agent.status} />
+                </TableCell>
+                <TableCell className="text-muted-foreground">{agent.type}</TableCell>
+                <TableCell className="font-mono text-sm">
+                  {formatLatency(agent.avgLatency)}
+                </TableCell>
+                <TableCell className="font-mono text-sm">
+                  {formatCurrency(agent.totalCost)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  )
+}
+
+---
+
+COMPONENT: Recent Logs
+Create file: components/overview/recent-logs.tsx
+
+'use client'
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { LogEntry } from '@/lib/api'
+import { formatDistanceToNow, parseISO } from 'date-fns'
+
+interface RecentLogsProps {
+  logs: LogEntry[]
+}
+
+const LEVEL_COLORS = {
+  info: 'bg-blue-900/30 text-blue-100',
+  warning: 'bg-yellow-900/30 text-yellow-100',
+  error: 'bg-red-900/30 text-red-100',
+  debug: 'bg-slate-700/30 text-slate-200',
+}
+
+export function RecentLogs({ logs }: RecentLogsProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Logs</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {logs.slice(0, 10).map((log) => (
+            <div key={log.id} className="flex items-start justify-between border-b pb-4 last:border-b-0">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-sm">{log.agentName}</span>
+                  <Badge
+                    className={LEVEL_COLORS[log.level]}
+                    variant="secondary"
+                  >
+                    {log.level}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{log.message}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formatDistanceToNow(parseISO(log.timestamp), { addSuffix: true })}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+================================================================================
+15. STEP 13: CREATE PAGE COMPONENTS
+================================================================================
+
+IMPORTANT: These are the main pages users will see!
+
+PAGE 1: Home / Overview
+Create file: app/page.tsx
+
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Header } from '@/components/dashboard/header'
+import { MetricsGrid } from '@/components/overview/metrics-grid'
+import { ActivityChart } from '@/components/overview/activity-chart'
+import { AgentStatusList } from '@/components/overview/agent-status-list'
+import { RecentLogs } from '@/components/overview/recent-logs'
+import { MetricsOverview, LogEntry } from '@/lib/api'
+import { mockMetricsOverview, mockLogs, mockAgents } from '@/lib/mock-data'
+
+export default function Home() {
+  const [metrics, setMetrics] = useState<MetricsOverview | null>(null)
+  const [logs, setLogs] = useState<LogEntry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // In production, replace with actual API calls
+    setMetrics(mockMetricsOverview)
+    setLogs(mockLogs)
+    setIsLoading(false)
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-muted-foreground">Loading dashboard...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex">
+        <Sidebar />
+        <main className="ml-56 w-[calc(100%-224px)] p-8">
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+              <p className="text-muted-foreground">
+                Real-time monitoring of your multi-agent system
+              </p>
+            </div>
+
+            {metrics && <MetricsGrid metrics={metrics} />}
+
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <ActivityChart data={generateActivityData()} />
+              </div>
+              <AgentStatusList agents={mockAgents.slice(0, 3)} />
+            </div>
+
+            <RecentLogs logs={logs} />
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+function generateActivityData() {
+  return Array.from({ length: 24 }, (_, i) => ({
+    time: `${i.toString().padStart(2, '0')}:00`,
+    requests: Math.floor(Math.random() * 500) + 100,
+    tokens: Math.floor(Math.random() * 50000) + 10000,
+    cost: Math.random() * 10 + 2,
+  }))
+}
+
+---
+
+PAGE 2: Agents
+Create file: app/agents/page.tsx
+
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Header } from '@/components/dashboard/header'
+import { AgentCard } from '@/components/agents/agent-card'
+import { Agent } from '@/lib/api'
+import { mockAgents } from '@/lib/mock-data'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Search } from 'lucide-react'
+
+export default function AgentsPage() {
+  const [agents, setAgents] = useState<Agent[]>([])
+  const [filteredAgents, setFilteredAgents] = useState<Agent[]>([])
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    // In production, replace with API call
+    setAgents(mockAgents)
+    setFilteredAgents(mockAgents)
+  }, [])
+
+  useEffect(() => {
+    let filtered = agents
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((a) => a.status === statusFilter)
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter((a) =>
+        a.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    setFilteredAgents(filtered)
+  }, [statusFilter, searchQuery, agents])
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex">
+        <Sidebar />
+        <main className="ml-56 w-[calc(100%-224px)] p-8">
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Agents</h1>
+              <p className="text-muted-foreground">
+                Monitor and manage all agents in your multi-agent system
+              </p>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search agents..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="idle">Idle</SelectItem>
+                  <SelectItem value="error">Error</SelectItem>
+                  <SelectItem value="offline">Offline</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredAgents.map((agent) => (
+                <AgentCard key={agent.id} agent={agent} />
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+---
+
+PAGE 3: Logs
+Create file: app/logs/page.tsx
+
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Header } from '@/components/dashboard/header'
+import { LogTable } from '@/components/logs/log-table'
+import { LogFilters } from '@/components/logs/log-filters'
+import { LogEntry } from '@/lib/api'
+import { mockLogs } from '@/lib/mock-data'
+
+export default function LogsPage() {
+  const [logs, setLogs] = useState<LogEntry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // In production, replace with API call + WebSocket
+    setLogs(mockLogs)
+    setIsLoading(false)
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex">
+        <Sidebar />
+        <main className="ml-56 w-[calc(100%-224px)] p-8">
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Logs</h1>
+              <p className="text-muted-foreground">
+                Real-time logs from all agents in your system
+              </p>
+            </div>
+
+            <LogFilters />
+            <LogTable logs={logs} isLoading={isLoading} />
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+---
+
+PAGE 4: Metrics (Simplified)
+Create file: app/metrics/page.tsx
+
+'use client'
+
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Header } from '@/components/dashboard/header'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+const metricData = Array.from({ length: 7 }, (_, i) => ({
+  day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
+  tokens: Math.floor(Math.random() * 100000) + 50000,
+  cost: Math.random() * 20 + 5,
+}))
+
+export default function MetricsPage() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex">
+        <Sidebar />
+        <main className="ml-56 w-[calc(100%-224px)] p-8">
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Metrics</h1>
+              <p className="text-muted-foreground">
+                Detailed analytics and performance metrics
+              </p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Token Usage (7 days)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={metricData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="tokens" fill="#06b6d4" />
+                    <Bar dataKey="cost" fill="#fbbf24" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+---
+
+PAGE 5: Traces (Placeholder)
+Create file: app/traces/page.tsx
+
+'use client'
+
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Header } from '@/components/dashboard/header'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { mockSessions } from '@/lib/mock-data'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { formatDistanceToNow, parseISO } from 'date-fns'
+import { Badge } from '@/components/ui/badge'
+
+export default function TracesPage() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex">
+        <Sidebar />
+        <main className="ml-56 w-[calc(100%-224px)] p-8">
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Traces</h1>
+              <p className="text-muted-foreground">
+                Session traces and execution flows
+              </p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Traces</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Session ID</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Start Time</TableHead>
+                      <TableHead>Agents</TableHead>
+                      <TableHead>Tokens</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mockSessions.map((session) => (
+                      <TableRow key={session.id}>
+                        <TableCell className="font-mono text-sm">
+                          {session.id}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{session.status}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {formatDistanceToNow(parseISO(session.startTime), {
+                            addSuffix: true,
+                          })}
+                        </TableCell>
+                        <TableCell>{session.agentsInvolved.length}</TableCell>
+                        <TableCell className="font-mono">
+                          {session.totalTokens}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+---
+
+PAGE 6: Settings (API Configuration)
+Create file: app/settings/page.tsx
+
+'use client'
+
+import { useEffect, useState } from 'react'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Header } from '@/components/dashboard/header'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { API_CONFIG } from '@/lib/api'
+
+export default function SettingsPage() {
+  const [baseUrl, setBaseUrl] = useState('')
+  const [wsUrl, setWsUrl] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setBaseUrl(API_CONFIG.BASE_URL)
+    setWsUrl(API_CONFIG.WS_URL)
+  }, [])
+
+  const handleSave = () => {
+    localStorage.setItem('API_BASE_URL', baseUrl)
+    localStorage.setItem('API_WS_URL', wsUrl)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex">
+        <Sidebar />
+        <main className="ml-56 w-[calc(100%-224px)] p-8">
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Settings</h1>
+              <p className="text-muted-foreground">
+                Configure your backend API connections
+              </p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>API Configuration</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label htmlFor="base-url">REST API Base URL</Label>
+                  <Input
+                    id="base-url"
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                    placeholder="http://localhost:8000"
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Base URL for all REST API calls. Default: {API_CONFIG.BASE_URL}
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="ws-url">WebSocket URL</Label>
+                  <Input
+                    id="ws-url"
+                    value={wsUrl}
+                    onChange={(e) => setWsUrl(e.target.value)}
+                    placeholder="ws://localhost:8000"
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    WebSocket URL for real-time log streaming. Default: {API_CONFIG.WS_URL}
+                  </p>
+                </div>
+
+                <Button onClick={handleSave}>
+                  {saved ? 'Saved!' : 'Save Configuration'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>API Endpoints</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm font-mono">
+                  <p>POST {API_CONFIG.ENDPOINTS.AGENTS}</p>
+                  <p>GET {API_CONFIG.ENDPOINTS.LOGS}</p>
+                  <p>WS {API_CONFIG.ENDPOINTS.LOGS_STREAM}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+---
+
+PAGE 7: Agent Detail Page
+Create file: app/agents/[id]/page.tsx
+
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Header } from '@/components/dashboard/header'
+import { AgentDetail } from '@/components/agents/agent-detail'
+import { Agent, AgentMetrics } from '@/lib/api'
+import { mockAgents, mockAgentMetrics } from '@/lib/mock-data'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+
+export default function AgentDetailPage() {
+  const params = useParams()
+  const [agent, setAgent] = useState<Agent | null>(null)
+  const [metrics, setMetrics] = useState<AgentMetrics | null>(null)
+
+  useEffect(() => {
+    const foundAgent = mockAgents.find((a) => a.id === params.id)
+    if (foundAgent) {
+      setAgent(foundAgent)
+      setMetrics(mockAgentMetrics)
+    }
+  }, [params.id])
+
+  if (!agent) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex">
+          <Sidebar />
+          <main className="ml-56 w-[calc(100%-224px)] p-8">
+            <div className="text-muted-foreground">Agent not found</div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex">
+        <Sidebar />
+        <main className="ml-56 w-[calc(100%-224px)] p-8">
+          <div className="space-y-6">
+            <Link href="/agents">
+              <Button variant="ghost" className="mb-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Agents
+              </Button>
+            </Link>
+
+            <div>
+              <h1 className="text-3xl font-bold">{agent.name}</h1>
+              <p className="text-muted-foreground">{agent.description}</p>
+            </div>
+
+            <AgentDetail agent={agent} metrics={metrics || undefined} />
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}
+
+---
+
+PAGE 8: Loading State
+Create file: app/agents/loading.tsx
+
+import { Skeleton } from '@/components/ui/skeleton'
+
+export default function Loading() {
+  return (
+    <div className="space-y-8">
+      <Skeleton className="h-12 w-40" />
+      <div className="grid gap-4 md:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+================================================================================
+16. RUNNING THE APPLICATION
+================================================================================
+
+Step 1: Install Dependencies
+-------------------------------
+npm install
+
+Step 2: Start Development Server
+-------------------------------
+npm run dev
+
+Step 3: Open in Browser
+-------------------------------
+Go to http://localhost:3000
+You should see the Overview dashboard
+
+Step 4: Troubleshooting
+-------------------------------
+If you get errors:
+1. Check Node version: node --version (should be 18+)
+2. Delete node_modules: rm -rf node_modules
+3. Reinstall: npm install
+4. Clear Next.js cache: rm -rf .next
+5. Restart: npm run dev
+
+================================================================================
+17. KEY API ENDPOINTS TO CHANGE
+================================================================================
+
+In lib/api.ts, modify these for your backend:
+
+1. API_CONFIG.BASE_URL
+   Change from: "http://localhost:8000"
+   Change to: "http://your-python-backend.com"
+
+2. API_CONFIG.WS_URL
+   Change from: "ws://localhost:8000"
+   Change to: "ws://your-python-backend.com" or "wss://your-python-backend.com"
+
+3. Endpoints to implement in your backend:
+   - GET /api/agents
+   - GET /api/agents/:id
+   - GET /api/logs
+   - GET /api/metrics/overview
+   - WS /ws/logs
+
+================================================================================
+18. CONNECTING YOUR BACKEND
+================================================================================
+
+Python Backend Example (FastAPI):
+
+from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+import json
+
+app = FastAPI()
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Your agent database
+agents_db = {...}
+logs_db = []
+
+@app.get("/api/agents")
+async def get_agents():
+    return {"agents": agents_db}
+
+@app.get("/api/logs")
+async def get_logs():
+    return {"logs": logs_db[-50:], "total": len(logs_db)}
+
+@app.websocket("/ws/logs")
+async def websocket_logs(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            await websocket.send_json({
+                "id": "log-123",
+                "timestamp": datetime.now().isoformat(),
+                "message": "Agent execution completed",
+                # ... other log fields
+            })
+            await asyncio.sleep(1)
+    except:
+        pass
+
+================================================================================
+19. FILES CHECKLIST
+================================================================================
+
+Core Files:
+☐ app/layout.tsx
+☐ app/page.tsx
+☐ app/globals.css
+☐ lib/api.ts (MODIFY BASE_URL HERE!)
+☐ lib/mock-data.ts
+☐ lib/utils.ts
+
+Dashboard Components:
+☐ components/dashboard/sidebar.tsx
+☐ components/dashboard/header.tsx
+☐ components/dashboard/stat-card.tsx
+☐ components/dashboard/status-badge.tsx
+
+Log Components:
+☐ components/logs/log-table.tsx
+☐ components/logs/log-filters.tsx
+
+Agent Components:
+☐ components/agents/agent-card.tsx
+☐ components/agents/agent-detail.tsx
+
+Overview Components:
+☐ components/overview/metrics-grid.tsx
+☐ components/overview/activity-chart.tsx
+☐ components/overview/agent-status-list.tsx
+☐ components/overview/recent-logs.tsx
+
+Hooks:
+☐ hooks/use-logs-stream.ts
+
+Pages:
+☐ app/agents/page.tsx
+☐ app/agents/[id]/page.tsx
+☐ app/agents/loading.tsx
+☐ app/logs/page.tsx
+☐ app/metrics/page.tsx
+☐ app/traces/page.tsx
+☐ app/settings/page.tsx
+
+Config Files:
+☐ package.json
+☐ tsconfig.json
+☐ next.config.mjs
+☐ postcss.config.mjs
+
+================================================================================
+20. QUICK REFERENCE
+================================================================================
+
+Main Dashboard URL:        http://localhost:3000
+Agents Page:               http://localhost:3000/agents
+Logs Page:                 http://localhost:3000/logs
+Metrics Page:              http://localhost:3000/metrics
+Traces Page:               http://localhost:3000/traces
+Settings Page:             http://localhost:3000/settings
+
+API Configuration:         Edit in lib/api.ts (line 1-10)
+Mock Data Toggle:          Edit component imports to use mock-data.ts
+WebSocket Connection:      Configured in lib/api.ts (createLogsWebSocket)
+
+================================================================================
+
+That's it! You now have a complete multi-agent monitoring dashboard.
+
+For questions on specific components, refer to their comments.
+For API integration help, see the PYTHON_BACKEND_EXAMPLE.txt file.
+
+Happy coding!
+
+================================================================================
