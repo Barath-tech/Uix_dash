@@ -1,0 +1,14 @@
+[theme]
+# Base theme: "light" or "dark"
+base = "light"
+
+# Main colors
+primaryColor = "#0ea5e9"          # Your buttons & tabs active color (sky blue)
+backgroundColor = "#ffffff"       # Main app background (white)
+secondaryBackgroundColor = "#f8fafc"  # Sidebar background (light gray/blueish)
+
+# Text colors
+textColor = "#1e293b"             # Primary text color (dark slate)
+font = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif"
+
+# You can only specify one font family as a string, so use the closest.

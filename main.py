@@ -8,7 +8,9 @@ st.set_page_config(
     page_title=config.APP_NAME,
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed",
+    menu_items=None,
+
 )
 
 # Apply light theme
@@ -23,7 +25,7 @@ with st.sidebar:
     st.markdown(f"## {config.APP_NAME}")
     st.markdown(config.APP_DESCRIPTION)
     st.divider()
-    
+
     pages = {
         "📊 Overview": "overview",
         "🤖 Agents": "agents",
@@ -32,12 +34,12 @@ with st.sidebar:
         "🔗 Traces": "traces",
         "⚙️ Settings": "settings"
     }
-    
+
     selected = st.radio("Navigation", list(pages.keys()), key="nav")
     st.session_state.page = pages[selected]
-    
+
     st.divider()
-    
+
     # System status
     st.markdown("### System Status")
     col1, col2 = st.columns(2)

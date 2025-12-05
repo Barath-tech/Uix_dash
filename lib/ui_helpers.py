@@ -75,7 +75,7 @@ def create_activity_chart(data: list):
     fig.add_trace(
         go.Scatter(x=df["time"], y=df["Requests"], name="Requests",
                    line=dict(color=config.PRIMARY_COLOR, width=2),
-                   fill="tozeroy", fillcolor=f"{config.PRIMARY_COLOR}20"),
+                   fill="tozeroy", fillcolor=config.PRIMARY_COLOR,opacity=0.2),
         secondary_y=False
     )
     
@@ -118,14 +118,14 @@ def create_token_distribution_chart(data: list):
         x=df["time"], y=df["Input Tokens"],
         name="Input Tokens",
         line=dict(color=config.PRIMARY_COLOR, width=2),
-        fill="tozeroy", fillcolor=f"{config.PRIMARY_COLOR}20"
+        fill="tozeroy", fillcolor=config.PRIMARY_COLOR,opacity=0.2
     ))
     
     fig.add_trace(go.Scatter(
         x=df["time"], y=df["Output Tokens"],
         name="Output Tokens",
         line=dict(color=config.SECONDARY_COLOR, width=2),
-        fill="tozeroy", fillcolor=f"{config.SECONDARY_COLOR}20"
+        fill="tozeroy", fillcolor=config.SECONDARY_COLOR,opacity=0.2
     ))
     
     fig.update_layout(
@@ -135,7 +135,7 @@ def create_token_distribution_chart(data: list):
         paper_bgcolor="white",
         font=dict(family="system-ui, -apple-system, sans-serif", size=12, color=config.NEUTRAL_TEXT),
         margin=dict(l=0, r=0, t=20, b=0),
-        stackgroup="one"
+
     )
     
     fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor=config.NEUTRAL_BORDER)
@@ -205,14 +205,14 @@ def create_latency_chart(data: list):
         x=df["time"], y=df["P95"],
         name="P95",
         line=dict(color=config.WARNING_COLOR, width=2),
-        fill="tonexty", fillcolor=f"{config.WARNING_COLOR}10"
+        fill="tonexty", fillcolor=config.WARNING_COLOR,opacity=0.1
     ))
     
     fig.add_trace(go.Scatter(
         x=df["time"], y=df["P99"],
         name="P99",
         line=dict(color=config.ERROR_COLOR, width=2),
-        fill="tonexty", fillcolor=f"{config.ERROR_COLOR}10"
+        fill="tonexty", fillcolor=config.ERROR_COLOR,opacity=0.1
     ))
     
     fig.update_layout(
@@ -229,72 +229,154 @@ def create_latency_chart(data: list):
     
     return fig
 
+import streamlit as st
+
 def apply_light_theme():
-    """Apply light theme CSS to Streamlit"""
+    """Apply light theme CSS to Streamlit in a clean, maintainable format."""
     st.markdown("""
     <style>
+    /* -------------------------
+       CSS Variables for Colors
+       ------------------------- */
+    :root {
+        --background-main: #ffffff;
+        --background-sidebar: #f8fafc;
+        --primary-color: #0ea5e9;
+        --primary-hover: #0284c7;
+        --text-color-main: #1e293b;
+        --text-color-muted: #64748b;
+        --sidebar-header: #0FA4E9;
+        --button-radius: 6px;
+        --button-padding: 8px 16px;
+    }
+
+    /* -------------------------
+       Global Styles
+       ------------------------- */
     * {
         font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        color: var(--text-color-main);
     }
-    
-    .stApp {
-        background-color: #ffffff;
+
+    .stApp, .main {
+        background-color: var(--background-main);
     }
-    
-    .main {
-        background-color: #ffffff;
-    }
-    
+
+    /* -------------------------
+       Sidebar
+       ------------------------- */
     [data-testid="stSidebar"] {
-        background-color: #f8fafc;
+        background-color: var(--background-sidebar);
         border-right: 1px solid #e2e8f0;
     }
-    
+
+    [data-testid="stSidebarHeader"] {
+        background-color: var(--sidebar-header);
+        border-right: 1px solid #e2e8f0;
+    }
+
+    /* -------------------------
+       Toolbar
+       ------------------------- */
+    [data-testid="stToolbar"] {
+        background-color: var(--primary-color);
+        border-right: 1px solid #e2e8f0;
+    }
+
+    /* -------------------------
+       Headings
+       ------------------------- */
     h1, h2, h3 {
-        color: #1e293b;
+        color: var(--text-color-main);
     }
-    
-    p, span, div {
-        color: #1e293b;
+
+    /* -------------------------
+       Text
+       ------------------------- */
+    p, span, div, [data-testid="stMetricValue"] {
+        color: var(--text-color-main);
+        
+        
     }
-    
-    [data-testid="stMetricValue"] {
-        color: #1e293b;
+     [data-testid="stMetricValue"] {
+        white-space: normal !important;      /* Allow multiline */
+        overflow: visible !important;         /* Show full content */
+        text-overflow: clip !important;       /* No ellipsis */
+        color: inherit !important;             /* Default color */
+        font-weight: normal !important;        /* Normal weight */
+        font-size: 16px !important;             /* Normal size */
+        background: none !important;            /* Remove background */
+        padding-left: 0 !important;             /* Remove padding from icon */
+        display: inline !important;              /* Inline or block as needed */
     }
-    
+
     [data-testid="stMetricLabel"] {
-        color: #64748b;
+        color: var(--text-color-muted);
     }
-    
+
+    /* -------------------------
+       Buttons
+       ------------------------- */
     .stButton > button {
-        background-color: #0ea5e9;
+        background-color: var(--primary-color);
         color: white;
-        border-radius: 6px;
+        border-radius: var(--button-radius);
         border: none;
         font-weight: 600;
-        padding: 8px 16px;
+        padding: var(--button-padding);
+        transition: background-color 0.2s ease;
     }
-    
+
     .stButton > button:hover {
-        background-color: #0284c7;
+        background-color: var(--primary-hover);
     }
-    
-    .stSelectbox, .stMultiSelect {
+
+    /* -------------------------
+       Inputs
+       ------------------------- */
+    .stTextInput, .stSelectbox, .stMultiSelect {
         background-color: white;
     }
-    
-    .stTextInput {
+    .stSelectbox select, .stMultiSelect select {
         background-color: white;
+        color: #0FA4E9;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 4px 8px;
     }
-    
+
+    /* Dropdown when focused (clicked/active) */
+    .st-c5,.stSelectbox select:focus, .stMultiSelect select:focus {
+        background-color: #0FA4E9;  /* Light blue background when active */
+        border-color: #0ea5e9;       /* Blue border when active */
+        outline: none;               /* Remove default outline */
+    }
+
+    /* Option hover inside dropdown */
+    .st-c5,.stSelectbox select option:hover, .stMultiSelect select option:hover {
+        background-color: #bae6fd;
+    }
+
+    /* Text color of options */
+    .st-c5,.stSelectbox select option, .stMultiSelect select option {
+        color: #1e293b;
+    }
+
+    /* -------------------------
+       Tabs
+       ------------------------- */
     .stTabs [data-baseweb="tab"] {
-        color: #64748b;
+        color: var(--text-color-muted);
         font-weight: 600;
     }
-    
+
     .stTabs [aria-selected="true"] {
-        color: #0ea5e9;
-        border-bottom: 3px solid #0ea5e9;
+        color: var(--primary-color);
+        border-bottom: 3px solid var(--primary-color);
+    }
+     [data-testid="stSidebarNav"] {
+        display: none;  /* Hides the sidebar navigation */
     }
     </style>
     """, unsafe_allow_html=True)
+
