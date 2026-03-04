@@ -1,0 +1,261 @@
+import streamlit as st
+import random
+import base64
+
+st.set_page_config(page_title="Quizz App", page_icon="🎯")
+def set_bg(image_file):
+    with open(image_file, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background:
+                linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)),
+                url("data:image/jpg;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }}
+
+        h1, h2, h3, h4, h5, h6, p, label, div {{
+            color: white !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+set_bg("background.jpg")
+
+# ------------------ SESSION STATE ------------------
+
+if "page" not in st.session_state:
+    st.session_state.page = "team_entry"
+
+if "team_index" not in st.session_state:
+    st.session_state.team_index = 0
+
+if "team_name" not in st.session_state:
+    st.session_state.team_name = ""
+
+if "attempts" not in st.session_state:
+    st.session_state.attempts = 0
+
+if "teams" not in st.session_state:
+    st.session_state.teams = []
+
+if "used_questions" not in st.session_state:
+    st.session_state.used_questions = [] 
+
+if "used_correct_options" not in st.session_state:
+    st.session_state.used_correct_options = []
+
+if "answer_keys" not in st.session_state:
+    options = ["A", "B", "C", "D"]
+    random.shuffle(options)
+    st.session_state.answer_keys = options
+
+# ------------------ QUESTIONS ------------------
+questions = [
+    {
+        "question": "What does TCS stand for?",
+        "options": ["A. Tata Computer Services", "B. Tata Consultancy Services", "C. Tech Consulting Systems", "D. Total Computing Solutions"],
+        "answer": "B"
+    },
+    {
+        "question": "How many TCS DC's are in Coimbatore?",
+        "options": ["A. 1", "B. 2", "C. 3", "D. 4"],
+        "answer": "B"
+    },
+    {
+        "question": "Coimbatore is famous for?",
+        "options": ["A. IT parks", "B. Textile industry", "C. Ports", "D. Mining"],
+        "answer": "B"
+    },
+    {
+        "question": "TCS is part of which group?",
+        "options": ["A. Reliance", "B. Adani", "C. Tata Group", "D. Infosys"],
+        "answer": "C"
+    }
+]
+
+# ------------------ FUNCTION: GET RANDOM QUESTION ------------------
+def get_random_question():
+    remaining = [
+        q for q in questions
+        if q not in st.session_state.used_questions
+        and q["answer"] not in st.session_state.used_correct_options
+    ]
+
+    # fallback if all unique options used
+    if not remaining:
+        remaining = [q for q in questions if q not in st.session_state.used_questions]
+
+    if not remaining:
+        st.warning("No more questions left!")
+        return random.choice(questions)
+
+    q = random.choice(remaining)
+
+    st.session_state.used_questions.append(q)
+    st.session_state.used_correct_options.append(q["answer"])
+
+    return q
+# ------------------ PAGE 1: TEAM ENTRY ------------------
+if st.session_state.page == "team_entry":
+    st.title(f"Welcome Co-Creators")
+    st.title(f"Enter Team {st.session_state.team_index + 1} Name")
+
+    name = st.text_input("Enter Team Name:")
+
+    if st.button("Start Question"):
+        if name.strip() == "":
+            st.warning("Please enter a team name")
+        else:
+            st.session_state.team_name = name
+            st.session_state.attempts = 0
+            st.session_state.current_q = get_random_question()
+
+            # Generate options ONCE here
+            q = st.session_state.current_q
+            assigned_option = st.session_state.answer_keys[st.session_state.team_index]
+
+            options_map = {}
+            for opt in q["options"]:
+                key, value = opt.split(". ", 1)
+                options_map[key] = value
+
+            correct_text = options_map[q["answer"]]
+            wrong_texts = [v for k, v in options_map.items() if k != q["answer"]]
+            random.shuffle(wrong_texts)
+
+            new_options = []
+            labels = ["A", "B", "C", "D"]
+            wrong_index = 0
+
+            for label in labels:
+                if label == assigned_option:
+                    new_options.append(f"{label}. {correct_text}")
+                else:
+                    new_options.append(f"{label}. {wrong_texts[wrong_index]}")
+                    wrong_index += 1
+
+            # SAVE OPTIONS
+            st.session_state.current_options = new_options
+
+            st.session_state.page = "quiz"
+            st.rerun()
+
+# ------------------ PAGE 2: QUIZ ------------------
+elif st.session_state.page == "quiz":
+
+    q = st.session_state.current_q
+    assigned_option = st.session_state.answer_keys[st.session_state.team_index]
+
+    # ------------------ MAP OPTIONS ------------------
+    options_map = {}
+    for opt in q["options"]:
+        key, value = opt.split(". ", 1)
+        options_map[key] = value
+
+    correct_text = options_map[q["answer"]]
+    wrong_texts = [v for k, v in options_map.items() if k != q["answer"]]
+    random.shuffle(wrong_texts)
+
+    # ------------------ REBUILD OPTIONS ------------------
+    new_options = []
+    labels = ["A", "B", "C", "D"]
+    wrong_index = 0
+
+    for label in labels:
+        if label == assigned_option:
+            new_options.append(f"{label}. {correct_text}")
+        else:
+            new_options.append(f"{label}. {wrong_texts[wrong_index]}")
+            wrong_index += 1
+
+    # ------------------ UI ------------------
+    st.title(f" Question for Team {st.session_state.team_index + 1}")
+    st.subheader(f"Team: {st.session_state.team_name}")
+    st.write(f"Attempts: {st.session_state.attempts}")
+
+    st.markdown(f"### {q['question']}")
+
+    # session state for selection
+    if "selected_option" not in st.session_state:
+        st.session_state.selected_option = None
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button(new_options[0]):
+            st.session_state.selected_option = new_options[0][0]
+
+        if st.button(new_options[2]):
+            st.session_state.selected_option = new_options[2][0]
+
+    with col2:
+        if st.button(new_options[1]):
+            st.session_state.selected_option = new_options[1][0]
+
+        if st.button(new_options[3]):
+            st.session_state.selected_option = new_options[3][0]
+
+    # show selected option
+    if st.session_state.selected_option:
+        st.write(f"Selected: {st.session_state.selected_option}")
+
+    # ------------------ SUBMIT ------------------
+    if st.button("Submit Answer"):
+        st.session_state.attempts += 1
+        selected_option = st.session_state.selected_option
+
+        if selected_option == assigned_option:
+            st.session_state.teams.append({
+                "name": st.session_state.team_name,
+                "selected_option": selected_option,
+                "attempts": st.session_state.attempts,
+                "score": 1
+            })
+
+            if selected_option is None:
+                st.warning("Please select an option")
+
+            st.session_state.page = "result"
+            st.rerun()
+        else:
+            st.error("❌ Wrong answer! Try again.")
+
+# ------------------ PAGE 3: RESULT ------------------
+elif st.session_state.page == "result":
+    last_team = st.session_state.teams[-1]
+
+    st.title("📊 Result")
+    st.write(f"Team: {last_team['name']}")
+
+    # if last_team["score"] >= 0:
+    st.success("🎉 Correct answer!")
+
+    if st.button("Next Team"):
+        if st.session_state.team_index < 3:
+            st.session_state.team_index += 1
+            st.session_state.page = "team_entry"
+            st.rerun()
+        else:
+            st.session_state.page = "leaderboard"
+            st.rerun()
+
+# ------------------ PAGE 4: LEADERBOARD ------------------
+elif st.session_state.page == "leaderboard":
+    st.title("🏆 Leaderboard")
+
+    # Sort teams by score (descending)
+    sorted_teams = sorted(st.session_state.teams, key=lambda x: x["score"], reverse=True)
+
+    for i, team in enumerate(sorted_teams, start=1):
+        st.write(f"{i}. {team['name']} - Correct Option: {team['selected_option']}")
+
+    if st.button("Restart Quiz"):
+        st.session_state.clear()
+        st.rerun()
